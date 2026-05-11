@@ -1,0 +1,7 @@
+
+ {"banned": {
+    "potassium bromate": {"reason": "carcinogenic", "region": "India"},
+    "sudan dye": {"reason": "toxic industrial dye"},
+    "calcium carbide": {"reason": "artificial ripening hazard"}
+  }
+}

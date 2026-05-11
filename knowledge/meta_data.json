@@ -1,0 +1,18 @@
+  {"meta": {
+    "msg_codes": ["INS621", "INS627", "INS631", "INS635"],
+    "processed_oils": [
+      "palm oil",
+      "palmolein",
+      "hydrogenated oil",
+      "refined vegetable oil",
+      "shortening"
+    ],
+    "ultra_processed_signals": [
+      "flavour enhancer",
+      "artificial flavour",
+      "nature identical flavour",
+      "modified starch",
+      "maltodextrin"
+    ]
+  }
+}

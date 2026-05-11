@@ -1,0 +1,15 @@
+fastapi
+pydantic
+uvicorn[standard]
+requests
+beautifulsoup4
+numpy
+pandas
+scikit-learn
+joblib
+pytest
+
+# Optional OCR support
+easyocr
+opencv-python
+torch

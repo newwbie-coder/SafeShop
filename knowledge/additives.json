@@ -1,0 +1,528 @@
+{
+  "ins100": {
+    "name": "Curcumin",
+    "category": "natural_colour",
+    "risk": "low",
+    "e_number": "e100"
+  },
+  "e100": {
+    "ref": "ins100"
+  },
+  "ins102": {
+    "name": "Tartrazine",
+    "category": "artificial_colour",
+    "risk": "high",
+    "e_number": "e102"
+  },
+  "e102": {
+    "ref": "ins102"
+  },
+  "ins110": {
+    "name": "Sunset Yellow FCF",
+    "category": "artificial_colour",
+    "risk": "high",
+    "e_number": "e110"
+  },
+  "e110": {
+    "ref": "ins110"
+  },
+  "ins122": {
+    "name": "Carmoisine",
+    "category": "artificial_colour",
+    "risk": "high",
+    "e_number": "e122"
+  },
+  "e122": {
+    "ref": "ins122"
+  },
+  "ins124": {
+    "name": "Ponceau 4R",
+    "category": "artificial_colour",
+    "risk": "high",
+    "e_number": "e124"
+  },
+  "e124": {
+    "ref": "ins124"
+  },
+  "ins129": {
+    "name": "Allura Red",
+    "category": "artificial_colour",
+    "risk": "high",
+    "e_number": "e129"
+  },
+  "e129": {
+    "ref": "ins129"
+  },
+  "ins133": {
+    "name": "Brilliant Blue",
+    "category": "artificial_colour",
+    "risk": "medium",
+    "e_number": "e133"
+  },
+  "e133": {
+    "ref": "ins133"
+  },
+  "ins150c": {
+    "name": "Caramel Colour III",
+    "category": "colour",
+    "risk": "medium",
+    "e_number": "e150c"
+  },
+  "e150c": {
+    "ref": "ins150c"
+  },
+  "ins150d": {
+    "name": "Caramel Colour IV",
+    "category": "colour",
+    "risk": "medium",
+    "e_number": "e150d"
+  },
+  "e150d": {
+    "ref": "ins150d"
+  },
+  "ins171": {
+    "name": "Titanium Dioxide",
+    "category": "colour",
+    "risk": "high",
+    "e_number": "e171"
+  },
+  "e171": {
+    "ref": "ins171"
+  },
+  "ins200": {
+    "name": "Sorbic Acid",
+    "category": "preservative",
+    "risk": "low",
+    "e_number": "e200"
+  },
+  "e200": {
+    "ref": "ins200"
+  },
+  "ins202": {
+    "name": "Potassium Sorbate",
+    "category": "preservative",
+    "risk": "low",
+    "e_number": "e202"
+  },
+  "e202": {
+    "ref": "ins202"
+  },
+  "ins210": {
+    "name": "Benzoic Acid",
+    "category": "preservative",
+    "risk": "medium",
+    "e_number": "e210"
+  },
+  "e210": {
+    "ref": "ins210"
+  },
+  "ins211": {
+    "name": "Sodium Benzoate",
+    "category": "preservative",
+    "risk": "medium",
+    "e_number": "e211"
+  },
+  "e211": {
+    "ref": "ins211"
+  },
+  "ins220": {
+    "name": "Sulphur Dioxide",
+    "category": "preservative",
+    "risk": "high",
+    "e_number": "e220"
+  },
+  "e220": {
+    "ref": "ins220"
+  },
+  "ins223": {
+    "name": "Sodium Metabisulphite",
+    "category": "preservative",
+    "risk": "high",
+    "e_number": "e223"
+  },
+  "e223": {
+    "ref": "ins223"
+  },
+  "ins224": {
+    "name": "Potassium Metabisulphite",
+    "category": "preservative",
+    "risk": "high",
+    "e_number": "e224"
+  },
+  "e224": {
+    "ref": "ins224"
+  },
+  "ins250": {
+    "name": "Sodium Nitrite",
+    "category": "preservative",
+    "risk": "high",
+    "e_number": "e250"
+  },
+  "e250": {
+    "ref": "ins250"
+  },
+  "ins251": {
+    "name": "Sodium Nitrate",
+    "category": "preservative",
+    "risk": "high",
+    "e_number": "e251"
+  },
+  "e251": {
+    "ref": "ins251"
+  },
+  "ins282": {
+    "name": "Calcium Propionate",
+    "category": "preservative",
+    "risk": "low",
+    "e_number": "e282"
+  },
+  "e282": {
+    "ref": "ins282"
+  },
+  "ins300": {
+    "name": "Ascorbic Acid",
+    "category": "antioxidant",
+    "risk": "low",
+    "e_number": "e300"
+  },
+  "e300": {
+    "ref": "ins300"
+  },
+  "ins319": {
+    "name": "TBHQ",
+    "category": "antioxidant",
+    "risk": "medium",
+    "e_number": "e319"
+  },
+  "e319": {
+    "ref": "ins319"
+  },
+  "ins320": {
+    "name": "BHA",
+    "category": "antioxidant",
+    "risk": "high",
+    "e_number": "e320"
+  },
+  "e320": {
+    "ref": "ins320"
+  },
+  "ins321": {
+    "name": "BHT",
+    "category": "antioxidant",
+    "risk": "high",
+    "e_number": "e321"
+  },
+  "e321": {
+    "ref": "ins321"
+  },
+  "ins322": {
+    "name": "Lecithin",
+    "category": "emulsifier",
+    "risk": "low",
+    "e_number": "e322"
+  },
+  "e322": {
+    "ref": "ins322"
+  },
+  "ins450": {
+    "name": "Diphosphates",
+    "category": "emulsifier",
+    "risk": "medium",
+    "e_number": "e450"
+  },
+  "e450": {
+    "ref": "ins450"
+  },
+  "ins471": {
+    "name": "Mono- and Diglycerides",
+    "category": "emulsifier",
+    "risk": "medium",
+    "e_number": "e471"
+  },
+  "e471": {
+    "ref": "ins471"
+  },
+  "ins476": {
+    "name": "Polyglycerol Polyricinoleate",
+    "category": "emulsifier",
+    "risk": "medium",
+    "e_number": "e476"
+  },
+  "e476": {
+    "ref": "ins476"
+  },
+  "ins260": {
+    "name": "Acetic Acid",
+    "category": "acidity_regulator",
+    "risk": "low",
+    "e_number": "e260"
+  },
+  "e260": {
+    "ref": "ins260"
+  },
+  "ins296": {
+    "name": "Malic Acid",
+    "category": "acidity_regulator",
+    "risk": "low",
+    "e_number": "e296"
+  },
+  "e296": {
+    "ref": "ins296"
+  },
+  "ins330": {
+    "name": "Citric Acid",
+    "category": "acidity_regulator",
+    "risk": "low",
+    "e_number": "e330"
+  },
+  "e330": {
+    "ref": "ins330"
+  },
+  "ins331": {
+    "name": "Sodium Citrate",
+    "category": "acidity_regulator",
+    "risk": "low",
+    "e_number": "e331"
+  },
+  "e331": {
+    "ref": "ins331"
+  },
+  "ins334": {
+    "name": "Tartaric Acid",
+    "category": "acidity_regulator",
+    "risk": "low",
+    "e_number": "e334"
+  },
+  "e334": {
+    "ref": "ins334"
+  },
+  "ins338": {
+    "name": "Phosphoric Acid",
+    "category": "acidity_regulator",
+    "risk": "medium",
+    "e_number": "e338"
+  },
+  "e338": {
+    "ref": "ins338"
+  },
+  "ins339": {
+    "name": "Sodium Phosphate",
+    "category": "acidity_regulator",
+    "risk": "medium",
+    "e_number": "e339"
+  },
+  "e339": {
+    "ref": "ins339"
+  },
+  "ins407": {
+    "name": "Carrageenan",
+    "category": "stabilizer",
+    "risk": "medium",
+    "e_number": "e407"
+  },
+  "e407": {
+    "ref": "ins407"
+  },
+  "ins412": {
+    "name": "Guar Gum",
+    "category": "thickener",
+    "risk": "low",
+    "e_number": "e412"
+  },
+  "e412": {
+    "ref": "ins412"
+  },
+  "ins415": {
+    "name": "Xanthan Gum",
+    "category": "thickener",
+    "risk": "low",
+    "e_number": "e415"
+  },
+  "e415": {
+    "ref": "ins415"
+  },
+  "ins466": {
+    "name": "Carboxymethyl Cellulose",
+    "category": "stabilizer",
+    "risk": "medium",
+    "e_number": "e466"
+  },
+  "e466": {
+    "ref": "ins466"
+  },
+  "ins500": {
+    "name": "Sodium Carbonate",
+    "category": "raising_agent",
+    "risk": "low",
+    "e_number": "e500"
+  },
+  "e500": {
+    "ref": "ins500"
+  },
+  "ins501": {
+    "name": "Potassium Carbonate",
+    "category": "raising_agent",
+    "risk": "low",
+    "e_number": "e501"
+  },
+  "e501": {
+    "ref": "ins501"
+  },
+  "ins503": {
+    "name": "Ammonium Carbonate",
+    "category": "raising_agent",
+    "risk": "low",
+    "e_number": "e503"
+  },
+  "e503": {
+    "ref": "ins503"
+  },
+  "ins551": {
+    "name": "Silicon Dioxide",
+    "category": "anti_caking",
+    "risk": "low",
+    "e_number": "e551"
+  },
+  "e551": {
+    "ref": "ins551"
+  },
+  "ins553": {
+    "name": "Magnesium Silicate",
+    "category": "anti_caking",
+    "risk": "medium",
+    "e_number": "e553"
+  },
+  "e553": {
+    "ref": "ins553"
+  },
+  "ins621": {
+    "name": "Monosodium Glutamate",
+    "category": "flavour_enhancer",
+    "risk": "high",
+    "e_number": "e621"
+  },
+  "e621": {
+    "ref": "ins621"
+  },
+  "ins627": {
+    "name": "Disodium Guanylate",
+    "category": "flavour_enhancer",
+    "risk": "high",
+    "e_number": "e627"
+  },
+  "e627": {
+    "ref": "ins627"
+  },
+  "ins631": {
+    "name": "Disodium Inosinate",
+    "category": "flavour_enhancer",
+    "risk": "high",
+    "e_number": "e631"
+  },
+  "e631": {
+    "ref": "ins631"
+  },
+  "ins635": {
+    "name": "Ribonucleotides",
+    "category": "flavour_enhancer",
+    "risk": "high",
+    "e_number": "e635"
+  },
+  "e635": {
+    "ref": "ins635"
+  },
+  "ins950": {
+    "name": "Acesulfame K",
+    "category": "sweetener",
+    "risk": "medium",
+    "e_number": "e950"
+  },
+  "e950": {
+    "ref": "ins950"
+  },
+  "ins951": {
+    "name": "Aspartame",
+    "category": "sweetener",
+    "risk": "high",
+    "e_number": "e951"
+  },
+  "e951": {
+    "ref": "ins951"
+  },
+  "ins952": {
+    "name": "Cyclamate",
+    "category": "sweetener",
+    "risk": "high",
+    "e_number": "e952"
+  },
+  "e952": {
+    "ref": "ins952"
+  },
+  "ins954": {
+    "name": "Saccharin",
+    "category": "sweetener",
+    "risk": "medium",
+    "e_number": "e954"
+  },
+  "e954": {
+    "ref": "ins954"
+  },
+  "ins955": {
+    "name": "Sucralose",
+    "category": "sweetener",
+    "risk": "medium",
+    "e_number": "e955"
+  },
+  "e955": {
+    "ref": "ins955"
+  },
+  "ins960": {
+    "name": "Steviol Glycosides",
+    "category": "sweetener",
+    "risk": "low",
+    "e_number": "e960"
+  },
+  "e960": {
+    "ref": "ins960"
+  },
+  "ins1101": {
+    "name": "Protease",
+    "category": "enzyme",
+    "risk": "low",
+    "e_number": null
+  },
+  "ins170": {
+  "name": "Calcium Carbonate",
+  "category": "acidity_regulator",
+  "risk": "low",
+  "e_number": "e170"
+},
+"e170": {
+  "ref": "ins170"
+},
+
+"ins327": {
+  "name": "Calcium Lactate",
+  "category": "acidity_regulator",
+  "risk": "low",
+  "e_number": "e327"
+},
+"e327": {
+  "ref": "ins327"
+},
+
+  "ins270": { "name": "Lactic Acid", "category": "acidity_regulator", "risk": "low", "e_number": "e270" },
+  "e270": { "ref": "ins270" },
+
+  "ins307": { "name": "Alpha Tocopherol", "category": "antioxidant", "risk": "low", "e_number": "e307" },
+  "e307": { "ref": "ins307" },
+
+  "ins422": { "name": "Glycerol", "category": "humectant", "risk": "low", "e_number": "e422" },
+  "e422": { "ref": "ins422" },
+
+  "ins440": { "name": "Pectin", "category": "gelling_agent", "risk": "low", "e_number": "e440" },
+  "e440": { "ref": "ins440" },
+
+  "ins472": { "name": "Fatty Acid Esters", "category": "emulsifier", "risk": "medium", "e_number": "e472" },
+  "e472": { "ref": "ins472" }
+}

@@ -1,0 +1,61 @@
+# Environment
+.env
+.env.*
+PROJECT.env
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+*.log
+
+# Debug files
+*_debug.json
+low_conf_debug.json
+knowledge/unknown_additives.txt
+
+# Generated datasets
+*.jsonl
+
+# Keep lightweight sample data
+!data/sample/*.json
+!data/sample/*.jsonl
+!data/sample/*.md
+
+# Generated scraper outputs
+data/generated/*
+!data/generated/.gitkeep
+
+# Model files
+*.pt
+*.pth
+*.ckpt
+*.pkl
+*.joblib
+
+# Training data and local artifacts
+ml_based/*.csv
+test7.jpg
+product_ids.txt
+
+# Editor / IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,14 @@
+{
+  "score": 36.36,
+  "verdict": "Unhealthy",
+  "reasons": [
+    "High salt (can increase BP)",
+    "Highly processed product",
+    "Artificial additive present"
+  ],
+  "flags": {
+    "msg": true,
+    "ultra_processed": true,
+    "sweeteners": []
+  }
+}

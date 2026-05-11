@@ -1,0 +1,12 @@
+{"keyword_detection": {
+    "flavour": {"category": "flavour", "risk": "low"},
+    "natural flavour": {"category": "flavour", "risk": "low"},
+    "artificial flavour": {"category": "flavour", "risk": "moderate"},
+    "flavour enhancer": {"category": "flavour_enhancer", "risk": "moderate"},
+
+    "colour": {"category": "colour", "risk": "moderate"},
+    "caramel colour": {"category": "colour", "risk": "moderate"},
+
+    "sweetener": {"category": "sweetener", "risk": "moderate"}
+  }
+}
