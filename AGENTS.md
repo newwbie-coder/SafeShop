@@ -35,3 +35,13 @@ wheels to avoid a large CUDA download and a `torchvision::nms does not exist` AB
 mismatch:
 - `.venv/bin/pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu`
 - Use `opencv-python-headless` (not `opencv-python`) — the VM has no libGL for the GUI build.
+
+`ocr_layer/ocr.py` auto-detects GPU (`gpu=torch.cuda.is_available()`), so `OCREngine`
+runs on CPU here without changes. On first use, `easyocr` downloads its detection +
+recognition models (~100 MB) over the network, so the first `OCREngine()` init is slow
+and requires egress. End-to-end OCR flow: `OCRProcessor().process(image)` -> feed the
+returned `ingredients` / `nutrition_text` into `POST /analyze`.
+
+The `ml_based/` scripts depend on trained model binaries (`*.pkl`) and large datasets
+that are intentionally excluded from the repo (see `ml_based/README.md`), so they are
+expected to be non-runnable out of the box — that is by design, not a bug to fix.
