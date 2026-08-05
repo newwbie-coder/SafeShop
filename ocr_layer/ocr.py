@@ -35,7 +35,7 @@ class OCREngine:
 
         self.reader = easyocr.Reader(
             ['en'],
-            gpu=True,
+            gpu=torch.cuda.is_available(),
             detector=True,
             recognizer=True,
             verbose=False
@@ -44,7 +44,8 @@ class OCREngine:
 
     def extract_text(self, image_path):
 
-        torch.cuda.empty_cache()  # 🔥 prevent memory issues
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()  # 🔥 prevent memory issues
 
         img = preprocess_image(image_path)
 
