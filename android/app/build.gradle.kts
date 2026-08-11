@@ -4,6 +4,14 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+// Baked-in default backend URL. Override at build time for a tester build, e.g.
+//   ./gradlew assembleDebug -PsafeshopBackendUrl=https://safeshop-backend.onrender.com
+// Falls back to localhost (use `adb reverse tcp:8000 tcp:8000`). Users can also change it
+// at runtime from the app's "Backend connection" field.
+val backendUrl: String = ((project.findProperty("safeshopBackendUrl") as String?)?.trim()
+    ?.takeIf { it.isNotEmpty() } ?: "http://127.0.0.1:8000/")
+    .let { if (it.endsWith("/")) it else "$it/" }
+
 android {
     namespace = "com.safeshop.app"
     compileSdk = 34
@@ -15,17 +23,15 @@ android {
         versionCode = 1
         versionName = "1.0"
         vectorDrawables { useSupportLibrary = true }
+        buildConfigField("String", "BASE_URL", "\"$backendUrl\"")
     }
 
     buildTypes {
         debug {
             isMinifyEnabled = false
-            // Device reaches the laptop-hosted backend via: adb reverse tcp:8000 tcp:8000
-            buildConfigField("String", "BASE_URL", "\"http://127.0.0.1:8000/\"")
         }
         release {
             isMinifyEnabled = false
-            buildConfigField("String", "BASE_URL", "\"http://127.0.0.1:8000/\"")
         }
     }
 

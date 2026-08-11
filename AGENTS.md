@@ -29,6 +29,13 @@ SafeShop has three surfaces:
   to reach a locally running backend, run `adb reverse tcp:8000 tcp:8000`. Cleartext is allowed only
   for localhost/10.0.2.2 via `res/xml/network_security_config.xml`.
 
+### Deploying the API (hosted backend)
+- The API runtime needs only `fastapi` + `uvicorn` + `pydantic` (no pandas/numpy/torch); the
+  `/analyze` and `/analyze_text` paths use stdlib + `ocr_layer` section/text helpers only.
+- Deploy artifacts: `Dockerfile` (binds `$PORT`), `deploy/requirements.txt` (slim), `render.yaml`.
+  See `DEPLOY.md`. The Android app can bake the hosted URL at build time via
+  `-PsafeshopBackendUrl=https://...` or accept it at runtime on the home screen.
+
 ### Cloud constraint: no Android emulator
 - Cloud VMs have no `/dev/kvm`, so the Android emulator cannot boot here. Do NOT try to run the app
   in an emulator in the cloud. Verify the app by building the debug APK (compile/package check) and

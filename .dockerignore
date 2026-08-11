@@ -1,0 +1,13 @@
+.git
+.venv
+android
+extension
+scraper
+ml_based
+data
+tests
+**/__pycache__
+*.pyc
+*.md
+.env
+.env.*
