@@ -1,6 +1,5 @@
 package com.safeshop.app.data
 
-import com.safeshop.app.BuildConfig
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -8,7 +7,19 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object ApiClient {
-    val api: SafeShopApi by lazy {
+
+    @Volatile
+    private var currentUrl: String? = null
+
+    @Volatile
+    private var cachedApi: SafeShopApi? = null
+
+    /** Returns a SafeShopApi bound to [baseUrl], rebuilding only when the URL changes. */
+    @Synchronized
+    fun api(baseUrl: String): SafeShopApi {
+        val existing = cachedApi
+        if (existing != null && currentUrl == baseUrl) return existing
+
         val logging = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BASIC
         }
@@ -18,11 +29,15 @@ object ApiClient {
             .readTimeout(30, TimeUnit.SECONDS)
             .build()
 
-        Retrofit.Builder()
-            .baseUrl(BuildConfig.BASE_URL)
+        val api = Retrofit.Builder()
+            .baseUrl(baseUrl)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(SafeShopApi::class.java)
+
+        cachedApi = api
+        currentUrl = baseUrl
+        return api
     }
 }

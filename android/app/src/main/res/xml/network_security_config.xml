@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- Debug/dev only: allow cleartext to the locally hosted backend. -->
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">127.0.0.1</domain>
-        <domain includeSubdomains="true">10.0.2.2</domain>
-        <domain includeSubdomains="true">localhost</domain>
-    </domain-config>
+    <!--
+      Debug/testing build: allow cleartext HTTP so the app can reach a locally hosted
+      backend over WiFi (your computer's LAN IP) or an adb-reversed localhost.
+      A production build should use HTTPS to a hosted backend and remove this.
+    -->
+    <base-config cleartextTrafficPermitted="true" />
 </network-security-config>

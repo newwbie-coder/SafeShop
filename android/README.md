@@ -23,16 +23,32 @@ The phone never structures the text itself. It sends the raw OCR blob to
 
 ## Point the app at the backend
 
-The app calls `BuildConfig.BASE_URL` (default `http://127.0.0.1:8000/`, see
-[app/build.gradle.kts](app/build.gradle.kts)). For a device/emulator to reach a backend
-running on your machine, forward the port with adb:
+The backend URL is editable at runtime on the app's home screen (persisted), defaulting to
+`BuildConfig.BASE_URL` = `http://127.0.0.1:8000/`. Pick whichever connection fits:
+
+### Option A - WiFi (no cable)
+
+1. Start the backend bound to all interfaces:
+   `.venv/bin/uvicorn backend.main:app --host 0.0.0.0 --port 8000`
+2. Find your computer's LAN IP (e.g. `192.168.1.5`): `ipconfig` (Windows) / `ifconfig` or
+   `ip addr` (macOS/Linux).
+3. Put the phone on the same WiFi network as the computer.
+4. In the app's "Backend connection" field, enter `http://<your-computer-ip>:8000` and tap Save.
+
+The debug build permits cleartext HTTP to any host (see
+[res/xml/network_security_config.xml](app/src/main/res/xml/network_security_config.xml)), so a
+plain `http://` LAN IP works. If it can't connect, allow port 8000 through your computer's firewall.
+
+### Option B - USB (adb reverse)
+
+Keep the default `http://127.0.0.1:8000/` and forward the port over USB:
 
 ```bash
 adb reverse tcp:8000 tcp:8000
 ```
 
-(Alternatively, for the standard emulator you can change `BASE_URL` to
-`http://10.0.2.2:8000/`, or point it at a hosted URL later.)
+(For the standard emulator you can instead use `http://10.0.2.2:8000/`. Later, point it at a
+hosted HTTPS URL.)
 
 ## Build and install
 

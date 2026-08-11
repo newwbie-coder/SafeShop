@@ -116,7 +116,7 @@ fun CameraScreen(onClose: () -> Unit) {
                         analyzing = true
                         val snapshot = detectedText
                         scope.launch {
-                            when (val r = Analyzer.analyze("Camera scan", snapshot)) {
+                            when (val r = Analyzer.analyze(context, "Camera scan", snapshot)) {
                                 is AnalyzeResult.Success -> result = r.response
                                 is AnalyzeResult.Error -> error = r.message
                             }

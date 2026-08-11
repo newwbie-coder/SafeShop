@@ -180,7 +180,7 @@ class OverlayService : Service() {
                     ""
                 }
                 projection.stop()
-                when (val r = Analyzer.analyze("Screen scan", text)) {
+                when (val r = Analyzer.analyze(this@OverlayService, "Screen scan", text)) {
                     is AnalyzeResult.Success -> showResult(r.response)
                     is AnalyzeResult.Error -> showToast(r.message)
                 }

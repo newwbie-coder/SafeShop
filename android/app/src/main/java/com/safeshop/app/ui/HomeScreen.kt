@@ -24,6 +24,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,6 +37,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.safeshop.app.data.BackendConfig
 import com.safeshop.app.overlay.OverlayService
 
 private enum class Screen { Home, Camera }
@@ -55,6 +57,8 @@ private fun canDrawOverlays(context: Context): Boolean = Settings.canDrawOverlay
 fun HomeScreen(onOpenCamera: () -> Unit) {
     val context = LocalContext.current
     var overlayGranted by remember { mutableStateOf(canDrawOverlays(context)) }
+    var backendUrl by remember { mutableStateOf(BackendConfig.getBaseUrl(context)) }
+    var backendSaved by remember { mutableStateOf(false) }
 
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -159,11 +163,41 @@ fun HomeScreen(onOpenCamera: () -> Unit) {
             }
         }
 
+        Spacer(Modifier.height(16.dp))
+
+        // Backend connection
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Column(Modifier.padding(16.dp)) {
+                Text("Backend connection", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                Text(
+                    "Over WiFi, put your computer's local IP here (e.g. http://192.168.1.5:8000). Same WiFi network, backend started with --host 0.0.0.0. Over USB you can instead keep 127.0.0.1 and run 'adb reverse tcp:8000 tcp:8000'.",
+                    color = Color(0xB3FFFFFF),
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
+                )
+                OutlinedTextField(
+                    value = backendUrl,
+                    onValueChange = { backendUrl = it; backendSaved = false },
+                    singleLine = true,
+                    label = { Text("Backend URL") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(10.dp))
+                Button(
+                    onClick = {
+                        BackendConfig.setBaseUrl(context, backendUrl)
+                        backendUrl = BackendConfig.getBaseUrl(context)
+                        backendSaved = true
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text(if (backendSaved) "Saved" else "Save backend URL") }
+            }
+        }
+
         Spacer(Modifier.height(20.dp))
-        Text(
-            "Dev note: the app talks to the SafeShop backend at http://127.0.0.1:8000. On a device/emulator run 'adb reverse tcp:8000 tcp:8000' with the backend running.",
-            color = Color(0x80FFFFFF),
-            fontSize = 11.sp
-        )
     }
 }
