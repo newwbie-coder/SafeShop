@@ -9,6 +9,8 @@ from .final_scoring_engine import final_score, get_verdict
 from .ingredient_analyzer import analyze_ingredients
 from .normalize_dataset import normalize_ingredients
 from .nutrition_parser4 import parse_nutrition
+from ocr_layer.section_detector import extract_ingredients, extract_nutrition
+from ocr_layer.text_cleaner import clean_text as clean_ocr_text
 
 app = FastAPI()
 
@@ -29,6 +31,11 @@ class ProductInput(BaseModel):
     category: Optional[str] = None
     nutrition_text: Optional[str] = ""
     ingredients: Optional[str] = ""
+
+
+class RawTextInput(BaseModel):
+    name: str
+    raw_text: Optional[str] = ""
 
 
 def get_health_flags(n):
@@ -73,9 +80,14 @@ def get_health_flags(n):
     return flags
 
 
-@app.post("/analyze")
-def analyze_product(product: ProductInput):
-    raw_text = (product.ingredients or "").lower().strip()
+def score_product(ingredients, nutrition_text):
+    """Shared scoring pipeline used by both /analyze and /analyze_text.
+
+    Accepts free-form ingredient text and nutrition text and returns the full
+    SafeShop analysis payload. Keeping this in one place means the two entry
+    points always produce an identical response shape.
+    """
+    raw_text = (ingredients or "").lower().strip()
     has_ingredients = bool(raw_text)
 
     if has_ingredients:
@@ -103,7 +115,7 @@ def analyze_product(product: ProductInput):
             "sweeteners": []
         }
 
-    parsed_nutrition = parse_nutrition(product.nutrition_text)
+    parsed_nutrition = parse_nutrition(nutrition_text)
     has_nutrition = parsed_nutrition.get("confidence", 0) > 0
 
     product_data = {
@@ -136,6 +148,30 @@ def analyze_product(product: ProductInput):
             "has_nutrition": has_nutrition
         }
     }
+
+
+@app.post("/analyze")
+def analyze_product(product: ProductInput):
+    return score_product(product.ingredients, product.nutrition_text)
+
+
+@app.post("/analyze_text")
+def analyze_text(payload: RawTextInput):
+    """Analyze a raw OCR text blob (from the mobile camera/overlay capture).
+
+    The phone sends whatever text it read off the screen or label; we clean it,
+    split ingredient vs nutrition sections here, and reuse the same scorer.
+    """
+    cleaned = clean_ocr_text(payload.raw_text or "")
+    ingredients = extract_ingredients(cleaned)
+    nutrition = extract_nutrition(cleaned)
+
+    result = score_product(ingredients, nutrition)
+    result["extracted"] = {
+        "ingredients": ingredients,
+        "nutrition_text": nutrition
+    }
+    return result
 
 
 @app.get("/")
