@@ -155,8 +155,10 @@ class OverlayService : Service() {
 
     private fun onBubbleTap() {
         if (projection != null) {
-            // Already have a live projection: scan again without re-prompting.
-            startService(Intent(this, OverlayService::class.java).setAction(ACTION_CAPTURE))
+            // Already have a live projection: scan again without re-prompting. We're
+            // already inside the running service, so call directly instead of
+            // startService (which can be blocked from the background).
+            handleCaptureRequest()
         } else {
             // First scan of the session: ask for screen-capture consent once.
             val i = Intent(this, ProjectionRequestActivity::class.java)
@@ -185,22 +187,27 @@ class OverlayService : Service() {
         val resultCode = MediaProjectionHolder.resultCode
         MediaProjectionHolder.clear()
 
-        ensureForeground()
+        if (!ensureForeground()) {
+            showToast("Couldn't start the SafeShop capture service.")
+            return
+        }
         val mpm = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         val newProjection: MediaProjection = try {
             mpm.getMediaProjection(resultCode, data)
         } catch (e: Exception) {
             showToast("Couldn't start screen capture - tap the bubble to try again.")
             stopForegroundCompat()
-            isForeground = false
             return
         }
-        newProjection.registerCallback(object : MediaProjection.Callback() {
-            override fun onStop() {
-                // System or user revoked capture; drop it so the next tap re-prompts.
-                projection = null
-            }
-        }, handler)
+        try {
+            newProjection.registerCallback(object : MediaProjection.Callback() {
+                override fun onStop() {
+                    // System or user revoked capture; drop it so the next tap re-prompts.
+                    projection = null
+                }
+            }, handler)
+        } catch (_: Exception) {
+        }
         projection = newProjection
         updateNotification()
 
@@ -213,23 +220,27 @@ class OverlayService : Service() {
         scope.launch {
             if (delayMs > 0) delay(delayMs)
             if (projection == null) return@launch
-            val capture = ScreenCapture(activeProjection, resources.displayMetrics)
-            capture.captureOnce { bitmap ->
-                if (bitmap == null) {
-                    showToast("Could not capture the screen")
-                    return@captureOnce
-                }
-                scope.launch {
-                    val text = try {
-                        TextRecognizerHelper.recognizeBitmap(bitmap)
-                    } catch (e: Exception) {
-                        ""
+            try {
+                val capture = ScreenCapture(activeProjection, resources.displayMetrics)
+                capture.captureOnce { bitmap ->
+                    if (bitmap == null) {
+                        showToast("Could not capture the screen")
+                        return@captureOnce
                     }
-                    when (val r = Analyzer.analyze(this@OverlayService, "Screen scan", text)) {
-                        is AnalyzeResult.Success -> showResult(r.response)
-                        is AnalyzeResult.Error -> showToast(r.message)
+                    scope.launch {
+                        val text = try {
+                            TextRecognizerHelper.recognizeBitmap(bitmap)
+                        } catch (e: Exception) {
+                            ""
+                        }
+                        when (val r = Analyzer.analyze(this@OverlayService, "Screen scan", text)) {
+                            is AnalyzeResult.Success -> showResult(r.response)
+                            is AnalyzeResult.Error -> showToast(r.message)
+                        }
                     }
                 }
+            } catch (e: Exception) {
+                showToast("Screen capture failed: ${e.message}")
             }
         }
     }
@@ -297,19 +308,24 @@ class OverlayService : Service() {
 
     // ---------------- Foreground service plumbing ----------------
 
-    private fun ensureForeground() {
-        if (isForeground) return
-        val notification = buildNotification()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(
-                NOTIFICATION_ID,
-                notification,
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION
-            )
-        } else {
-            startForeground(NOTIFICATION_ID, notification)
+    private fun ensureForeground(): Boolean {
+        if (isForeground) return true
+        return try {
+            val notification = buildNotification()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                startForeground(
+                    NOTIFICATION_ID,
+                    notification,
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION
+                )
+            } else {
+                startForeground(NOTIFICATION_ID, notification)
+            }
+            isForeground = true
+            true
+        } catch (e: Exception) {
+            false
         }
-        isForeground = true
     }
 
     private fun updateNotification() {
