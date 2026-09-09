@@ -3,6 +3,7 @@ package com.safeshop.app.overlay
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -12,7 +13,9 @@ import android.graphics.drawable.GradientDrawable
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.MotionEvent
@@ -61,6 +64,13 @@ class OverlayService : Service() {
     private var cardOwner: WindowLifecycleOwner? = null
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
+    // Kept alive for the whole session so the user only grants screen capture once
+    // and can then scan repeatedly. Null until consent is granted, or after Stop /
+    // the system revokes the projection.
+    private var projection: MediaProjection? = null
+    private var isForeground = false
+    private val handler = Handler(Looper.getMainLooper())
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
@@ -71,10 +81,8 @@ class OverlayService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
-            ACTION_CAPTURE -> {
-                goForegroundMediaProjection()
-                performCapture()
-            }
+            ACTION_CAPTURE -> handleCaptureRequest()
+            ACTION_STOP -> stopEverything()
             else -> addBubble()
         }
         return START_STICKY
@@ -146,46 +154,69 @@ class OverlayService : Service() {
     }
 
     private fun onBubbleTap() {
-        // Modern Android disallows reusing a screen-capture consent token, and each
-        // capture stops the projection, so ask for fresh consent on every scan. This
-        // also guarantees we grab whatever screen the user is currently looking at.
-        val i = Intent(this, ProjectionRequestActivity::class.java)
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        startActivity(i)
+        if (projection != null) {
+            // Already have a live projection: scan again without re-prompting.
+            startService(Intent(this, OverlayService::class.java).setAction(ACTION_CAPTURE))
+        } else {
+            // First scan of the session: ask for screen-capture consent once.
+            val i = Intent(this, ProjectionRequestActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(i)
+        }
     }
 
     // ---------------- Capture + analyze ----------------
 
-    private fun performCapture() {
+    private fun handleCaptureRequest() {
+        val existing = projection
+        if (existing != null) {
+            // Reuse the live projection; the bubble tap doesn't change the screen,
+            // so a tiny delay is enough to let the tap ripple settle.
+            captureFrom(existing, delayMs = 120)
+            return
+        }
+
+        // No live projection yet: create one from the just-granted consent token.
         val data = MediaProjectionHolder.data
         if (data == null) {
             showToast("Screen capture not granted")
-            stopForegroundCompat()
             return
         }
         val resultCode = MediaProjectionHolder.resultCode
-        // The consent token is single-use, so drop it immediately after we take it.
         MediaProjectionHolder.clear()
 
-        // Let the consent dialog / request activity finish dismissing so we capture
-        // the app the user is on, not the SafeShop permission screen.
-        scope.launch {
-            delay(350)
-            val mpm = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-            val projection: MediaProjection = try {
-                mpm.getMediaProjection(resultCode, data)
-            } catch (e: Exception) {
-                showToast("Couldn't start screen capture - tap the bubble to try again.")
-                stopForegroundCompat()
-                return@launch
+        ensureForeground()
+        val mpm = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+        val newProjection: MediaProjection = try {
+            mpm.getMediaProjection(resultCode, data)
+        } catch (e: Exception) {
+            showToast("Couldn't start screen capture - tap the bubble to try again.")
+            stopForegroundCompat()
+            isForeground = false
+            return
+        }
+        newProjection.registerCallback(object : MediaProjection.Callback() {
+            override fun onStop() {
+                // System or user revoked capture; drop it so the next tap re-prompts.
+                projection = null
             }
+        }, handler)
+        projection = newProjection
+        updateNotification()
 
-            val capture = ScreenCapture(projection, resources.displayMetrics)
+        // First capture: wait for the consent dialog to dismiss so we grab the app
+        // the user is on, not the SafeShop permission screen.
+        captureFrom(newProjection, delayMs = 400)
+    }
+
+    private fun captureFrom(activeProjection: MediaProjection, delayMs: Long) {
+        scope.launch {
+            if (delayMs > 0) delay(delayMs)
+            if (projection == null) return@launch
+            val capture = ScreenCapture(activeProjection, resources.displayMetrics)
             capture.captureOnce { bitmap ->
                 if (bitmap == null) {
                     showToast("Could not capture the screen")
-                    projection.stop()
-                    stopForegroundCompat()
                     return@captureOnce
                 }
                 scope.launch {
@@ -194,12 +225,10 @@ class OverlayService : Service() {
                     } catch (e: Exception) {
                         ""
                     }
-                    projection.stop()
                     when (val r = Analyzer.analyze(this@OverlayService, "Screen scan", text)) {
                         is AnalyzeResult.Success -> showResult(r.response)
                         is AnalyzeResult.Error -> showToast(r.message)
                     }
-                    stopForegroundCompat()
                 }
             }
         }
@@ -268,7 +297,8 @@ class OverlayService : Service() {
 
     // ---------------- Foreground service plumbing ----------------
 
-    private fun goForegroundMediaProjection() {
+    private fun ensureForeground() {
+        if (isForeground) return
         val notification = buildNotification()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(
@@ -279,15 +309,39 @@ class OverlayService : Service() {
         } else {
             startForeground(NOTIFICATION_ID, notification)
         }
+        isForeground = true
+    }
+
+    private fun updateNotification() {
+        if (!isForeground) return
+        (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
+            .notify(NOTIFICATION_ID, buildNotification())
     }
 
     private fun stopForegroundCompat() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            stopForeground(STOP_FOREGROUND_DETACH)
+            stopForeground(STOP_FOREGROUND_REMOVE)
         } else {
             @Suppress("DEPRECATION")
-            stopForeground(false)
+            stopForeground(true)
         }
+        isForeground = false
+    }
+
+    /** Fully tears down the session: capture, bubble, foreground notification, service. */
+    private fun stopEverything() {
+        removeCard()
+        projection?.stop()
+        projection = null
+        bubbleView?.let {
+            try {
+                windowManager.removeView(it)
+            } catch (_: Exception) {
+            }
+        }
+        bubbleView = null
+        stopForegroundCompat()
+        stopSelf()
     }
 
     private fun buildNotification(): Notification {
@@ -297,10 +351,22 @@ class OverlayService : Service() {
             @Suppress("DEPRECATION")
             Notification.Builder(this)
         }
+        val ready = projection != null
+        val stopIntent = PendingIntent.getService(
+            this,
+            0,
+            Intent(this, OverlayService::class.java).setAction(ACTION_STOP),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
         return builder
             .setContentTitle("SafeShop")
-            .setContentText("Reading the screen to score this product...")
+            .setContentText(
+                if (ready) "Screen access on - tap the bubble to scan any product."
+                else "Reading the screen to score this product..."
+            )
             .setSmallIcon(android.R.drawable.ic_menu_view)
+            .setOngoing(true)
+            .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Stop", stopIntent)
             .build()
     }
 
@@ -334,6 +400,8 @@ class OverlayService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         removeCard()
+        projection?.stop()
+        projection = null
         bubbleView?.let {
             try {
                 windowManager.removeView(it)
@@ -348,6 +416,7 @@ class OverlayService : Service() {
         private const val CHANNEL_ID = "safeshop_overlay"
         private const val NOTIFICATION_ID = 1001
         const val ACTION_CAPTURE = "com.safeshop.app.action.CAPTURE"
+        const val ACTION_STOP = "com.safeshop.app.action.STOP"
 
         fun start(context: Context) {
             context.startService(Intent(context, OverlayService::class.java))

@@ -126,7 +126,7 @@ fun HomeScreen(onOpenCamera: () -> Unit) {
             Column(Modifier.padding(16.dp)) {
                 Text("Overlay on shopping apps", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                 Text(
-                    "Shows a floating SafeShop bubble on top of any app. Open a product in your shopping app, tap the bubble, and it reads the screen and scores it. You keep ordering in that app.",
+                    "Shows a floating SafeShop bubble on top of any app. Open a product in your shopping app, tap the bubble, and it reads the screen and scores it. You keep ordering in that app. Screen access is asked once - after that, tap the bubble to scan as many products as you like; use the SafeShop notification's Stop when you're done.",
                     color = Color(0xB3FFFFFF),
                     fontSize = 13.sp,
                     modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
