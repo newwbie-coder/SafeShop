@@ -29,7 +29,7 @@ private val Green = Color(0xFF22C55E)
 private val Amber = Color(0xFFF59E0B)
 private val Red = Color(0xFFEF4444)
 private val CardBg = Color(0xFF141414)
-private val SubtleBg = Color(0x0FFFFFFFF)
+private val SubtleBg = Color(0x14FFFFFF)
 
 private data class Level(val label: String, val fraction: Float)
 
@@ -102,6 +102,13 @@ private fun dynamicAdvice(result: AnalyzeResponse): List<String> {
 fun ScoreCard(result: AnalyzeResponse, modifier: Modifier = Modifier) {
     val color = scoreColor(result.score)
     val nutrition = result.parsedNutrition
+
+    val hasIngredients = result.extracted?.ingredients?.isNotBlank() == true
+    val hasNutrition = result.extracted?.nutritionText?.isNotBlank() == true
+    if (!hasIngredients && !hasNutrition) {
+        NoLabelCard(modifier)
+        return
+    }
 
     Column(
         modifier = modifier
@@ -200,6 +207,25 @@ fun ScoreCard(result: AnalyzeResponse, modifier: Modifier = Modifier) {
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun NoLabelCard(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(CardBg)
+            .padding(16.dp)
+    ) {
+        Text("No label detected", color = Amber, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+        Text(
+            "Couldn't read an ingredients or nutrition panel on this screen. Point the camera (or the overlay bubble) at the product's ingredients / nutrition label and scan again.",
+            color = Color(0xCCFFFFFF),
+            fontSize = 13.sp,
+            modifier = Modifier.padding(top = 6.dp)
+        )
     }
 }
 

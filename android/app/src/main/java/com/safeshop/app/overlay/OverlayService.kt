@@ -50,6 +50,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class OverlayService : Service() {
@@ -145,14 +146,12 @@ class OverlayService : Service() {
     }
 
     private fun onBubbleTap() {
-        if (!MediaProjectionHolder.hasPermission()) {
-            val i = Intent(this, ProjectionRequestActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            startActivity(i)
-        } else {
-            val i = Intent(this, OverlayService::class.java).setAction(ACTION_CAPTURE)
-            startService(i)
-        }
+        // Modern Android disallows reusing a screen-capture consent token, and each
+        // capture stops the projection, so ask for fresh consent on every scan. This
+        // also guarantees we grab whatever screen the user is currently looking at.
+        val i = Intent(this, ProjectionRequestActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(i)
     }
 
     // ---------------- Capture + analyze ----------------
@@ -160,31 +159,48 @@ class OverlayService : Service() {
     private fun performCapture() {
         val data = MediaProjectionHolder.data
         if (data == null) {
-            Toast.makeText(this, "Screen capture not granted", Toast.LENGTH_SHORT).show()
+            showToast("Screen capture not granted")
+            stopForegroundCompat()
             return
         }
-        val mpm = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-        val projection: MediaProjection = mpm.getMediaProjection(MediaProjectionHolder.resultCode, data)
+        val resultCode = MediaProjectionHolder.resultCode
+        // The consent token is single-use, so drop it immediately after we take it.
+        MediaProjectionHolder.clear()
 
-        val capture = ScreenCapture(projection, resources.displayMetrics)
-        capture.captureOnce { bitmap ->
-            if (bitmap == null) {
-                showToast("Could not capture the screen")
-                projection.stop()
-                return@captureOnce
-            }
-            scope.launch {
-                val text = try {
-                    TextRecognizerHelper.recognizeBitmap(bitmap)
-                } catch (e: Exception) {
-                    ""
-                }
-                projection.stop()
-                when (val r = Analyzer.analyze(this@OverlayService, "Screen scan", text)) {
-                    is AnalyzeResult.Success -> showResult(r.response)
-                    is AnalyzeResult.Error -> showToast(r.message)
-                }
+        // Let the consent dialog / request activity finish dismissing so we capture
+        // the app the user is on, not the SafeShop permission screen.
+        scope.launch {
+            delay(350)
+            val mpm = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+            val projection: MediaProjection = try {
+                mpm.getMediaProjection(resultCode, data)
+            } catch (e: Exception) {
+                showToast("Couldn't start screen capture - tap the bubble to try again.")
                 stopForegroundCompat()
+                return@launch
+            }
+
+            val capture = ScreenCapture(projection, resources.displayMetrics)
+            capture.captureOnce { bitmap ->
+                if (bitmap == null) {
+                    showToast("Could not capture the screen")
+                    projection.stop()
+                    stopForegroundCompat()
+                    return@captureOnce
+                }
+                scope.launch {
+                    val text = try {
+                        TextRecognizerHelper.recognizeBitmap(bitmap)
+                    } catch (e: Exception) {
+                        ""
+                    }
+                    projection.stop()
+                    when (val r = Analyzer.analyze(this@OverlayService, "Screen scan", text)) {
+                        is AnalyzeResult.Success -> showResult(r.response)
+                        is AnalyzeResult.Error -> showToast(r.message)
+                    }
+                    stopForegroundCompat()
+                }
             }
         }
     }
