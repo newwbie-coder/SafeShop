@@ -60,7 +60,12 @@ The card is the product. A **low score is a warning**, not a glitch.
 | **Advice** | Short, practical next step |
 | **Source** | `catalog` if the page hid the label and we matched a known product |
 
-<img src="docs/images/demo-bigbasket-bournvita.png" alt="Expanded SafeShop card showing health risks, nutrition bars, and additives" width="920" />
+The same card across three verdicts:
+
+| Unhealthy · 30 | Moderate · 53 | Healthy · 100 |
+|:---:|:---:|:---:|
+| <img src="docs/images/demo-bigbasket-bournvita.png" alt="Bournvita scored Unhealthy 30" /> | <img src="docs/images/demo-moderate-protein-bar.png" alt="Protein bar scored Moderate 53" /> | <img src="docs/images/demo-healthy-oats.png" alt="Steel cut oats scored Healthy 100" /> |
+| Bournvita drink | Max Protein bar | Steel cut oats |
 
 ---
 
