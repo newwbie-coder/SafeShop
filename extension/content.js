@@ -175,31 +175,75 @@ if (window.safeShopInjected) {
         return bullets.innerText.replace(/["']/g, "").trim();
     }
 
+    function isProductPage() {
+        return /\/pd\/\d+/.test(location.pathname);
+    }
+
+    function getProductId() {
+        const match = location.pathname.match(/\/pd\/(\d+)/);
+        return match ? match[1] : "";
+    }
+
+    function getBrand() {
+        const el = document.querySelector('[class*="Brand"]')
+            || document.querySelector('a[href*="/pb/"]');
+        return el ? el.innerText.trim() : "";
+    }
+
+    function getLabelImageUrls() {
+        const urls = [];
+        document.querySelectorAll("img").forEach((img) => {
+            let src = img.currentSrc || img.src || "";
+            if (!src && img.srcset) {
+                src = img.srcset.split(",")[0].trim().split(" ")[0];
+            }
+            if (!src || src.startsWith("data:")) return;
+            if (/\.svg(\?|$)/i.test(src)) return;
+            if (/logo|sprite|icon|banner|placeholder|pixel/i.test(src)) return;
+            if (!/bbassets\.com|bigbasket\.com/i.test(src)) return;
+            const width = img.naturalWidth || img.width || 0;
+            if (width && width < 160) return;
+            urls.push(src);
+        });
+        return [...new Set(urls)].slice(0, 3);
+    }
+
+    function sendRuntime(type, data) {
+        return new Promise((resolve) => {
+            chrome.runtime.sendMessage({ type, data }, (response) => {
+                if (chrome.runtime.lastError) {
+                    console.error("SafeShop runtime error:", chrome.runtime.lastError);
+                    resolve(null);
+                    return;
+                }
+                resolve(response || null);
+            });
+        });
+    }
+
     // ============================
     // API CALL
     // ============================
     function getScoreFromAPI(productData) {
-        return new Promise((resolve) => {
-            chrome.runtime.sendMessage(
-                { type: "GET_SCORE", data: productData },
-                (response) => {
-                    if (chrome.runtime.lastError) {
-                        console.error("❌ Runtime error:", chrome.runtime.lastError);
-                        resolve(null);
-                        return;
-                    }
-                    resolve(response || null);
-                }
-            );
-        });
+        return sendRuntime("GET_SCORE", productData);
     }
+
+    function getOcrFromAPI(payload) {
+        return sendRuntime("GET_OCR", payload);
+    }
+
+    function sendFeedback(payload) {
+        return sendRuntime("SEND_FEEDBACK", payload);
+    }
+
+    const lastProductMeta = { name: "", brand: "", product_id: "" };
 
     // ============================
     // UI
     // ============================
 function renderUI(result) {
 
-    if (!result) return;
+    if (!result || result.error || result.score == null) return;
 
     let existing = document.getElementById("safe-shop-box");
     if (existing) existing.remove();
@@ -300,7 +344,7 @@ function renderUI(result) {
 
                 <div>
                     <div style="font-size:14px;font-weight:600;">Safe Score</div>
-                    <div style="font-size:12px;opacity:0.6;">${verdict}</div>
+                    <div style="font-size:12px;opacity:0.6;">${verdict}${result.source === "cache" ? " · catalog" : result.source === "ocr" ? " · label photo" : result.needs_ocr ? " · incomplete label" : ""}</div>
                 </div>
             </div>
 
@@ -337,6 +381,10 @@ function renderUI(result) {
                     ${a.name}
                 </span>
             `))}
+
+            <div id="safe-feedback" style="font-size:11px;opacity:0.55;margin-top:10px;text-decoration:underline;">
+                Score looks wrong
+            </div>
         </div>
     </div>
     `;
@@ -456,55 +504,141 @@ function renderUI(result) {
             tooltip.style.opacity = "0";
         });
     });
+
+    const feedback = box.querySelector("#safe-feedback");
+    if (feedback) {
+        feedback.addEventListener("click", (event) => {
+            event.stopPropagation();
+            const comment = window.prompt("What looks wrong with this score?");
+            if (!comment || !comment.trim()) return;
+            sendFeedback({
+                comment: comment.trim(),
+                name: lastProductMeta.name,
+                brand: lastProductMeta.brand,
+                product_id: lastProductMeta.product_id,
+                score_shown: result.score,
+                verdict_shown: result.verdict,
+            });
+        });
+    }
 }
     // ============================
     // MAIN
     // ============================
-    async function runSafeShop() {
+    async function runSafeShop(token) {
 
     const name = getProductName();
     if (!name) return;
+    if (token !== runToken) return;
 
-    const ingredientsText = getIngredientsText(); // may be empty
-    const nutritionText = getNutritionText();
+    lastProductMeta.name = name;
+    lastProductMeta.brand = getBrand();
+    lastProductMeta.product_id = getProductId();
 
     const data = {
         name,
-        nutrition_text: nutritionText || "",
-        ingredients: ingredientsText || ""
+        brand: lastProductMeta.brand,
+        product_id: lastProductMeta.product_id,
+        nutrition_text: getNutritionText() || "",
+        ingredients: getIngredientsText() || ""
     };
 
     const result = await getScoreFromAPI(data);
-
+    if (token !== runToken) return;
     console.log("API:", result);
+    if (!result || result.error) return;
 
-    if (!result) return;
+    let finalResult = result;
+    if (result.needs_ocr) {
+        const urls = getLabelImageUrls();
+        for (const image_url of urls) {
+            if (token !== runToken) return;
+            const ocr = await getOcrFromAPI({
+                name,
+                brand: lastProductMeta.brand,
+                product_id: lastProductMeta.product_id,
+                image_url
+            });
+            if (ocr && !ocr.error && !ocr.needs_ocr) {
+                finalResult = ocr;
+                break;
+            }
+        }
+    }
 
-    renderUI(result);
+    if (token !== runToken) return;
+    renderUI(finalResult);
 }
+
+    function removeScoreCard() {
+        const existing = document.getElementById("safe-shop-box");
+        if (existing) existing.remove();
+        const tooltip = document.getElementById("safe-tooltip");
+        if (tooltip) tooltip.style.opacity = "0";
+    }
+
+    function waitForProductThenRun(token) {
+        let attempts = 0;
+        const interval = setInterval(() => {
+            if (token !== runToken) {
+                clearInterval(interval);
+                return;
+            }
+            if (!isProductPage()) {
+                clearInterval(interval);
+                return;
+            }
+            if (attempts > 6) {
+                clearInterval(interval);
+                return;
+            }
+
+            const name = getProductName();
+            if (name) {
+                const hasLabel = Boolean(getNutritionText() || getIngredientsText());
+                const hasImages = getLabelImageUrls().length > 0;
+                if (hasLabel || hasImages || attempts >= 5) {
+                    clearInterval(interval);
+                    runSafeShop(token);
+                    return;
+                }
+            }
+
+            attempts++;
+        }, 1500);
+    }
+
+    function onLocationChange() {
+        const productId = getProductId();
+        if (productId === watchedProductId) return;
+
+        watchedProductId = productId;
+        runToken += 1;
+        removeScoreCard();
+
+        if (!productId) return;
+        waitForProductThenRun(runToken);
+    }
+
+    function hookHistory() {
+        const notify = () => onLocationChange();
+        const wrap = (fn) => function () {
+            const result = fn.apply(this, arguments);
+            notify();
+            return result;
+        };
+        history.pushState = wrap(history.pushState);
+        history.replaceState = wrap(history.replaceState);
+        window.addEventListener("popstate", notify);
+    }
 
     // ============================
     // EXECUTION
     // ============================
-    let attempts = 0;
+    let runToken = 0;
+    let watchedProductId = null;
 
-    const interval = setInterval(() => {
-
-        if (attempts > 5) {
-            clearInterval(interval);
-            return;
-        }
-
-        const name = getProductName();
-        const nutrition = getNutritionText();
-
-        // 🔥 NEW LOGIC: run if ANY useful data exists
-        if (name && (nutrition || getIngredientsText())) {
-            runSafeShop();
-            clearInterval(interval);
-        }
-
-        attempts++;
-
-    }, 1500);
+    hookHistory();
+    onLocationChange();
+    setInterval(onLocationChange, 800);
 }

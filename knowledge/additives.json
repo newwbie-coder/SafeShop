@@ -524,5 +524,30 @@
   "e440": { "ref": "ins440" },
 
   "ins472": { "name": "Fatty Acid Esters", "category": "emulsifier", "risk": "medium", "e_number": "e472" },
-  "e472": { "ref": "ins472" }
+  "e472": { "ref": "ins472" },
+
+  "ins1442": { "name": "Hydroxypropyl Distarch Phosphate", "category": "modified_starch", "risk": "low", "e_number": "e1442" },
+  "e1442": { "ref": "ins1442" },
+  "ins417": { "name": "Tara Gum", "category": "thickener", "risk": "low", "e_number": "e417" },
+  "e417": { "ref": "ins417" },
+  "ins410": { "name": "Locust Bean Gum", "category": "thickener", "risk": "low", "e_number": "e410" },
+  "e410": { "ref": "ins410" },
+  "ins451": { "name": "Phosphates", "category": "stabilizer", "risk": "medium", "e_number": "e451" },
+  "e451": { "ref": "ins451" },
+  "ins508": { "name": "Potassium Chloride", "category": "flavour_enhancer", "risk": "low", "e_number": "e508" },
+  "e508": { "ref": "ins508" },
+  "ins414": { "name": "Gum Arabic", "category": "thickener", "risk": "low", "e_number": "e414" },
+  "e414": { "ref": "ins414" },
+  "ins160c": { "name": "Paprika Extract", "category": "colour", "risk": "low", "e_number": "e160c" },
+  "e160c": { "ref": "ins160c" },
+  "ins330": { "name": "Citric Acid", "category": "acidity_regulator", "risk": "low", "e_number": "e330" },
+  "e330": { "ref": "ins330" },
+  "ins473": { "name": "Sucrose Esters", "category": "emulsifier", "risk": "medium", "e_number": "e473" },
+  "e473": { "ref": "ins473" },
+  "ins321": { "name": "BHA", "category": "antioxidant", "risk": "medium", "e_number": "e321" },
+  "e321": { "ref": "ins321" },
+  "ins334": { "name": "Tartaric Acid", "category": "acidity_regulator", "risk": "low", "e_number": "e334" },
+  "e334": { "ref": "ins334" },
+  "ins1518": { "name": "Triacetin", "category": "humectant", "risk": "low", "e_number": "e1518" },
+  "e1518": { "ref": "ins1518" }
 }

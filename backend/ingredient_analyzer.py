@@ -2,9 +2,10 @@ import json
 import re
 from pathlib import Path
 
+from .additive_growth import log_unknown_additive
+
 ROOT_DIR = Path(__file__).resolve().parent.parent
 KNOWLEDGE_DIR = ROOT_DIR / "knowledge"
-UNKNOWN_ADDITIVES_PATH = KNOWLEDGE_DIR / "unknown_additives.txt"
 
 with (KNOWLEDGE_DIR / "additives.json").open(encoding="utf-8") as f:
     ADDITIVES_DB = json.load(f)
@@ -76,10 +77,11 @@ def normalize_code(code: str):
 
 
 def extract_additives(text):
-    pattern = r"(ins\s?\d{3,4}[a-z]?|e\s?\d{3,4}[a-z]?|\b\d{3,4}\b)"
-    matches = re.findall(pattern, text.lower())
-
-    return list(set(normalize_code(m) for m in matches))
+    lower = text.lower()
+    matches = re.findall(r"(?:ins|e)\s*(\d{3,4}[a-z]?)", lower)
+    paren = re.findall(r"\(\s*(\d{3,4}[a-z]?)\s*\)", lower)
+    codes = [normalize_code(f"ins{m}") for m in matches + paren]
+    return list(dict.fromkeys(codes))
 
 
 def add_unique(lst, item):
@@ -118,16 +120,6 @@ def resolve_additive(code):
     return None
 
 
-# ===== 🔥 UNKNOWN LOGGER =====
-def log_unknown_additive(code):
-    try:
-        UNKNOWN_ADDITIVES_PATH.parent.mkdir(parents=True, exist_ok=True)
-        with UNKNOWN_ADDITIVES_PATH.open("a", encoding="utf-8") as f:
-            f.write(code + "\n")
-    except Exception:
-        pass
-
-
 # ===== MAIN ANALYZER =====
 def analyze_ingredients(ingredients):
 
@@ -142,7 +134,8 @@ def analyze_ingredients(ingredients):
         "processed_oils": [],
         "ultra_processed": False,
         "artificial_colors": [],
-        "unknown_additives": []   # 🔥 NEW
+        "unknown_additives": [],
+        "caffeine": False,
     }
 
     if not ingredients:
@@ -226,6 +219,9 @@ def analyze_ingredients(ingredients):
     for code in MSG_CODES:
         if code in normalized:
             result["msg"] = True
+
+    if "caffeine" in lower:
+        result["caffeine"] = True
 
     for s in SWEETENERS:
         if s in lower:
