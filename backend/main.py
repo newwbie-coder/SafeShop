@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from .catalog import lookup as catalog_lookup, remember as catalog_remember
+from .catalog import lookup as catalog_lookup, remember as catalog_remember, stats as catalog_stats
 from .feedback_store import record_feedback
 from .final_scoring_engine import final_score, get_verdict
 from .ingredient_analyzer import analyze_ingredients
@@ -276,3 +276,13 @@ def submit_feedback(payload: FeedbackInput):
 @app.get("/")
 def root():
     return {"message": "SafeShop API running"}
+
+
+@app.get("/health")
+def health():
+    info = catalog_stats()
+    return {
+        "ok": True,
+        "catalog_products": info["products"],
+        "catalog_names": info["names"],
+    }

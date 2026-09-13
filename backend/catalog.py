@@ -126,6 +126,14 @@ def lookup(product_id: str | None = None, brand: str | None = None, name: str | 
     return None
 
 
+def stats() -> dict:
+    load_catalog()
+    return {
+        "products": len(_by_id),
+        "names": len(_by_key),
+    }
+
+
 def remember(product_id: str | None, brand: str | None, name: str | None, ingredients: str, nutrition: str) -> None:
     """Grow the runtime catalog from live analyses that had real label text."""
     if not (ingredients or "").strip() and not (nutrition or "").strip():

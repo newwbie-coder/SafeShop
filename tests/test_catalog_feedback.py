@@ -76,6 +76,26 @@ def test_analyze_uses_catalog_when_page_has_no_label(tmp_path, monkeypatch):
     assert body["verdict"] == "Unhealthy"
 
 
+def test_health_reports_catalog_size(tmp_path, monkeypatch):
+    catalog_file = tmp_path / "catalog.jsonl"
+    catalog_file.write_text(
+        json.dumps({
+            "product_id": "1",
+            "name": "Test Oats",
+            "brand": "Safe",
+            "ingredients": "Whole grain oats",
+            "nutrition": "Energy 389 kcal Protein 16.9 g",
+        }) + "\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("SAFESHOP_CATALOG_PATH", str(catalog_file))
+    catalog.reset_for_tests()
+    client = TestClient(app)
+    body = client.get("/health").json()
+    assert body["ok"] is True
+    assert body["catalog_products"] == 1
+
+
 def test_analyze_missing_label_asks_for_ocr(monkeypatch, tmp_path):
     empty = tmp_path / "empty.jsonl"
     empty.write_text("", encoding="utf-8")
