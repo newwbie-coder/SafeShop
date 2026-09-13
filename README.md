@@ -62,10 +62,10 @@ The card is the product. A **low score is a warning**, not a glitch.
 
 The same card across three verdicts:
 
-| Unhealthy · 30 | Moderate · 53 | Healthy · 100 |
+| Unhealthy · 30 | Moderate · 68 | Healthy · 100 |
 |:---:|:---:|:---:|
-| <img src="docs/images/demo-bigbasket-bournvita.png" alt="Bournvita scored Unhealthy 30" /> | <img src="docs/images/demo-moderate-protein-bar.png" alt="Protein bar scored Moderate 53" /> | <img src="docs/images/demo-healthy-oats.png" alt="Steel cut oats scored Healthy 100" /> |
-| Bournvita drink | Max Protein bar | Steel cut oats |
+| <img src="docs/images/demo-bigbasket-bournvita.png" alt="Bournvita scored Unhealthy 30" /> | <img src="docs/images/demo-moderate-protein-bar.png" alt="RiteBite Max Protein cookie scored Moderate 68" /> | <img src="docs/images/demo-healthy-oats.png" alt="Quaker Rolled Oats scored Healthy 100" /> |
+| Bournvita drink | RiteBite Max Protein cookie | Quaker Rolled Oats |
 
 ---
 
