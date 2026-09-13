@@ -79,6 +79,36 @@ SPELL_FIX = {
 }
 
 
+def harvest_process_signals(text):
+    """Keep oil / MSG cues that live inside parentheses (stripped by clean_text)."""
+    if not text:
+        return []
+    lower = text.lower()
+    extra = []
+    if "palmolein" in lower or "palm olein" in lower or re.search(r"\bpalm oil\b", lower):
+        extra.append("palm oil")
+    if "hydrogenated" in lower:
+        extra.append("hydrogenated oil")
+    if "monosodium glutamate" in lower or re.search(r"\bmsg\b", lower):
+        extra.append("ins621")
+    if "caffeine" in lower:
+        extra.append("caffeine")
+    return extra
+
+
+def harvest_additive_codes(text):
+    """Pull INS/E numbers out before parentheses are stripped."""
+    if not text:
+        return []
+    lower = text.lower()
+    codes = []
+    for match in re.finditer(r"(?:ins|e)\s*(\d{3,4}[a-z]?)", lower):
+        codes.append(f"ins{match.group(1)}")
+    for match in re.finditer(r"\(\s*(\d{3,4}[a-z]?)\s*\)", lower):
+        codes.append(f"ins{match.group(1)}")
+    return list(dict.fromkeys(codes))
+
+
 # ===== CLEAN TEXT =====
 def clean_text(text):
 
@@ -195,6 +225,8 @@ def normalize_ingredients(text):
     if not text:
         return []
 
+    harvested = harvest_additive_codes(text)
+    harvested.extend(harvest_process_signals(text))
     text = clean_text(text)
 
     tokens = smart_split(text)
@@ -207,7 +239,8 @@ def normalize_ingredients(text):
             continue
         result.append(norm)
 
-    return list(dict.fromkeys(result))  # remove duplicates, keep order
+    result.extend(harvested)
+    return list(dict.fromkeys(result))
 
 
 # ===== MAIN =====

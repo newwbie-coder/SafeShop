@@ -1,0 +1,10 @@
+# One-click deploy of the SafeShop API to Render (https://render.com).
+# In Render: New + -> Blueprint -> pick this repo. Render reads this file and the Dockerfile.
+services:
+  - type: web
+    name: safeshop-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /
+    # Render injects PORT automatically; the Dockerfile CMD binds to it.

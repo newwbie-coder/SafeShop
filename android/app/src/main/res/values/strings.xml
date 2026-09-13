@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">SafeShop</string>
+    <string name="overlay_channel_name">SafeShop Overlay</string>
+</resources>

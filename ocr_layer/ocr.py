@@ -4,11 +4,9 @@ import numpy as np
 import cv2
 import os
 
-# 🔥 helps reduce CUDA fragmentation issues
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 
 
-# ===== PREPROCESS =====
 def preprocess_image(path):
     img = cv2.imread(path)
 
@@ -27,34 +25,35 @@ def preprocess_image(path):
     return img
 
 
-# ===== OCR ENGINE =====
 class OCREngine:
     def __init__(self):
-        print("CUDA available:", torch.cuda.is_available())
-        print("Using GPU:", torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU")
+        use_gpu = torch.cuda.is_available()
+        print("CUDA available:", use_gpu)
+        if use_gpu:
+            print("Using GPU:", torch.cuda.get_device_name(0))
+        else:
+            print("Using GPU: CPU")
 
         self.reader = easyocr.Reader(
-            ['en'],
-            gpu=True,
+            ["en"],
+            gpu=use_gpu,
             detector=True,
             recognizer=True,
-            verbose=False
+            verbose=False,
         )
 
-
     def extract_text(self, image_path):
-
-        torch.cuda.empty_cache()  # 🔥 prevent memory issues
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
         img = preprocess_image(image_path)
 
         try:
             results = self.reader.readtext(img)
         except RuntimeError as e:
-            # 🔥 fallback to CPU if GPU OOM
             if "out of memory" in str(e).lower():
-                print("⚠️ GPU OOM → switching to CPU")
-                self.reader = easyocr.Reader(['en'], gpu=False)
+                print("GPU OOM -> switching to CPU")
+                self.reader = easyocr.Reader(["en"], gpu=False)
                 results = self.reader.readtext(img)
             else:
                 raise e
@@ -64,22 +63,15 @@ class OCREngine:
 
         for (bbox, text, prob) in results:
             text = text.strip()
-
-            # 🔥 filter garbage OCR
             if len(text) < 2:
                 continue
-
             texts.append(text)
             confidences.append(prob)
 
         raw_text = " ".join(texts)
-
-        avg_conf = (
-            sum(confidences) / len(confidences)
-            if confidences else 0
-        )
+        avg_conf = sum(confidences) / len(confidences) if confidences else 0
 
         return {
             "raw_text": raw_text,
-            "ocr_confidence": round(avg_conf, 3)
+            "ocr_confidence": round(avg_conf, 3),
         }

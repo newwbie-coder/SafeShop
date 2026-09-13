@@ -12,8 +12,18 @@ def clean_text(text):
     # normalize spacing
     text = re.sub(r"\s+", " ", text)
 
-    # fix common OCR mistakes
-    text = text.replace("ingre dients", "ingredients")
-    text = text.replace("nutri tion", "nutrition")
+    text = re.sub(r"\b[il1]ngredients\b", "ingredients", text)
+    for broken, fixed in (
+        ("ingre dients", "ingredients"),
+        ("nutri tion", "nutrition"),
+        ("nutritlon", "nutrition"),
+        ("nutrlton", "nutrition"),
+        ("proteln", "protein"),
+        ("sodlum", "sodium"),
+        ("carbohydrete", "carbohydrate"),
+        ("carbohvdrate", "carbohydrate"),
+        ("transfat", "trans fat"),
+    ):
+        text = text.replace(broken, fixed)
 
     return text.strip()

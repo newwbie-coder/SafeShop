@@ -1,212 +1,147 @@
 # SafeShop
 
-AI-powered real-time food ingredient and nutrition analysis system.
+**Explainable health scores for packaged food — on the BigBasket product page.**
 
-SafeShop is an end-to-end applied AI + data engineering product that helps users understand packaged food products beyond marketing claims. It analyzes ingredients and nutrition data in real time, detects additives and ultra-processed signals, and returns an explainable food-health score through a FastAPI backend and browser extension workflow.
+A Chrome extension plus a hosted API. SafeShop reads ingredients and nutrition (from the page, or from a 10k-product catalog when the site hides the label), then returns a **score, verdict, and reasons**. It does not scrape other grocery apps, and it does not hide the scoring behind a model.
 
-## Problem Statement
+<p align="center">
+  <img src="docs/images/demo-bigbasket-bournvita.png" alt="SafeShop score card on a BigBasket Bournvita product page" width="920" />
+</p>
 
-Consumers often struggle to understand:
+<p align="center"><sub>Live demo: Bournvita on BigBasket — score <b>30 / Unhealthy</b>, with sugar, processing, and additive reasons.</sub></p>
 
-- hidden additives
-- misleading nutrition labels
-- ultra-processed foods
-- ingredient safety
+[Download the extension zip](https://github.com/newwbie-coder/SafeShop/raw/cursor/android-safeshop-companion-7b69/SafeShop-extension.zip)
+·
+[API](https://safeshop.onrender.com/)
+·
+[Health check](https://safeshop.onrender.com/health)
 
-SafeShop addresses that gap by extracting product information from live product pages, normalizing ingredient text, parsing nutrition labels, and converting those signals into an interpretable score with reasons.
+---
 
-## Features
+## Install the Chrome extension
 
-- Real-time ingredient extraction from supported product pages
-- Nutrition parsing from messy semi-structured label text
-- Explainable food-health scoring with human-readable reasons
-- Browser extension integration for live product analysis
-- Ingredient normalization pipeline for noisy label data
-- OCR-ready architecture for label-image workflows
-- Expandable ML-based scoring layer for future experiments
+Works on **Chrome or Edge on a computer**. Phone Chrome cannot load extensions.
 
-## Positioning
+### 1. Download the zip
 
-SafeShop should be viewed as a polished real-world AI product system, not just a scraper or a standalone ML model. Its strongest engineering signals are:
+[SafeShop-extension.zip](https://github.com/newwbie-coder/SafeShop/raw/cursor/android-safeshop-companion-7b69/SafeShop-extension.zip) — unzip it so you can see `manifest.json`, `content.js`, and `background.js`.
 
-- live product-page extraction
-- explainable scoring
-- backend API integration
-- browser-extension UX
-- scalable modular architecture
-- OCR and ML extensibility
+<img src="docs/images/install-step-1-download.png" alt="Download SafeShop-extension.zip from GitHub" width="720" />
 
-## Tech Stack
+### 2. Turn on Developer mode
 
-- Python
-- FastAPI
-- Pydantic
-- Requests
-- BeautifulSoup
-- Browser Extension APIs
-- OCR tooling with EasyOCR/OpenCV
-- Machine learning experiments with pandas and scikit-learn
+Open `chrome://extensions` (Edge: `edge://extensions`). Enable **Developer mode**, then click **Load unpacked**.
 
-## How It Works
+<img src="docs/images/install-step-2-developer-mode.png" alt="Chrome Extensions page with Developer mode on and Load unpacked" width="720" />
 
-1. The browser extension reads product information from a supported product page.
-2. It sends ingredient and nutrition text to the FastAPI backend.
-3. The backend normalizes ingredients and parses nutrition values.
-4. Additives, sweeteners, processed oils, and ultra-processed signals are detected.
-5. The scoring engine returns a score, verdict, reasons, and health flags.
-6. The extension injects the result directly into the shopping experience.
+### 3. Select the unzipped folder
 
-## Project Structure
+Pick the folder that **contains** `manifest.json` (often named `extension` after unzipping). Do not pick the zip file itself, and do not pick the whole SafeShop repo.
+
+<img src="docs/images/install-step-3-select-folder.png" alt="File picker selecting the extension folder" width="720" />
+
+### 4. Open a product page
+
+Go to any BigBasket product URL that looks like `https://www.bigbasket.com/pd/…`. The score card appears on the right.
+
+The first request after the API has been idle can take **30–60 seconds** while the free host wakes up. After that it is quick.
+
+---
+
+## What you should see
+
+The card is the product. A **low score is a warning**, not a glitch.
+
+| | |
+|---|---|
+| **Safe Score** | 0–100 plus Healthy / Moderate / Unhealthy |
+| **Health risks** | Sugar, sodium, calories when the panel supports it |
+| **Key issues** | Additives, ultra-processed signals, oils |
+| **Advice** | Short, practical next step |
+| **Source** | `catalog` if the page hid the label and we matched a known product |
+
+The same card across three verdicts:
+
+| Unhealthy · 30 | Moderate · 68 | Healthy · 100 |
+|:---:|:---:|:---:|
+| <img src="docs/images/demo-bigbasket-bournvita.png" alt="Bournvita scored Unhealthy 30" /> | <img src="docs/images/demo-moderate-protein-bar.png" alt="RiteBite Max Protein cookie scored Moderate 68" /> | <img src="docs/images/demo-healthy-oats.png" alt="Quaker Rolled Oats scored Healthy 100" /> |
+| Bournvita drink | RiteBite Max Protein cookie | Quaker Rolled Oats |
+
+---
+
+## How a score is produced
 
 ```text
-SafeShop/
-├── backend/
-│   ├── main.py
-│   ├── pipeline.py
-│   ├── final_scoring_engine.py
-│   ├── ingredient_analyzer.py
-│   ├── ingredient_cleaner.py
-│   ├── normalize_dataset.py
-│   └── nutrition_parser4.py
-├── knowledge/
-├── scraper/
-├── extension/
-├── ocr_layer/
-├── ml_based/
-├── data/
-│   └── sample/
-├── tests/
-├── README.md
-├── requirements.txt
-├── .gitignore
-├── .env.example
-└── LICENSE
+BigBasket product page
+        │
+        ▼
+  page ingredients / nutrition  ──►  if empty, 10k product catalog
+        │
+        ▼
+  rule-based engine (additives + nutrition)
+        │
+        ▼
+  score, verdict, reasons on the page
 ```
 
-## API Example
+- **Live text** from the product page, when BigBasket shows it.
+- **Catalog** of ~10,000 packaged foods when the page does not.
+- **Incomplete** if both are missing — SafeShop will not invent a Healthy 100.
+- Scoring is **explainable rules**, not a model trained on our own scores.
 
-### Request
+Hosted API (no laptop required):
 
-```json
-POST /analyze
-{
-  "name": "Sample Instant Noodles",
-  "ingredients": "Refined wheat flour, palm oil, flavour enhancer (INS 621)",
-  "nutrition_text": "Energy 420 kcal, Protein 8 g, Carbohydrate 65 g, Sugars 5 g, Sodium 980 mg"
-}
+<img src="docs/images/demo-hosted-api.png" alt="Hosted SafeShop API responding that it is running" width="640" />
+
+```http
+GET  https://safeshop.onrender.com/
+GET  https://safeshop.onrender.com/health
+POST https://safeshop.onrender.com/analyze
 ```
-
-### Response
 
 ```json
 {
-  "score": 36.36,
-  "verdict": "Unhealthy",
-  "reasons": [
-    "High salt (can increase BP)",
-    "Highly processed product",
-    "Artificial additive present"
-  ],
-  "flags": {
-    "msg": true,
-    "ultra_processed": true,
-    "sweeteners": []
-  }
+  "name": "Schezwan Instant Noodles",
+  "product_id": "270510",
+  "brand": "Ching's Secret",
+  "ingredients": "",
+  "nutrition_text": ""
 }
 ```
 
-## Setup
+If that `product_id` is in the catalog, the API fills the label and scores it.
 
-### 1. Create and activate a virtual environment
+---
 
-```bash
-python -m venv .venv
+## Privacy
+
+- No login and no ads.
+- The extension only talks to the SafeShop API and BigBasket pages you already opened.
+- Optional “Score looks wrong” notes are stored so the engine can be improved later. They are **not** auto-applied to scores.
+
+---
+
+## Repo layout
+
+```text
+backend/     FastAPI scorer, catalog, feedback log
+extension/   Chrome / Edge unpacked extension
+knowledge/   Additive vocabulary
+ocr_layer/   Optional label-image OCR (not required for the hosted demo)
+data/        Hosted product catalog + small samples
+android/     Companion app (camera); overlay shopping-apps is paused
 ```
 
-On Windows:
+---
+
+## Local development (optional)
+
+Friends do **not** need this. The extension already uses the hosted API.
 
 ```bash
-.venv\Scripts\activate
+python -m pip install -r deploy/requirements.txt
+python -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
+python -m pytest tests -q
 ```
 
-On macOS/Linux:
-
-```bash
-source .venv/bin/activate
-```
-
-### 2. Install dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 3. Start the API
-
-```bash
-uvicorn backend.main:app --reload
-```
-
-The API runs at `http://127.0.0.1:8000`.
-
-## Browser Extension Setup
-
-1. Open `chrome://extensions/`
-2. Enable `Developer mode`
-3. Click `Load unpacked`
-4. Select the `extension/` folder
-5. Open a supported BigBasket product page
-
-The extension calls the local backend at `http://127.0.0.1:8000/analyze` and renders the SafeShop score card on the page.
-
-## Sample Data And Pipeline
-
-This repository includes lightweight example files under `data/sample/` so the normalization and scoring flow can be understood without uploading the full scraped datasets.
-
-Example commands:
-
-```bash
-python -m backend.normalize_dataset
-python -m backend.nutrition_parser4
-python -m backend.pipeline
-```
-
-Generated scraper outputs are written under `data/generated/` and are gitignored.
-
-## OCR And ML Modules
-
-- `ocr_layer/` contains optional OCR utilities for label-image extraction workflows.
-- `ml_based/` contains experimental ML scripts for future scoring expansion.
-
-These folders are included to show the system's extensibility, but the main public demo path is the rule-based backend plus browser extension integration.
-
-## Tests
-
-Lightweight tests are included for:
-
-- nutrition parsing
-- scoring engine behavior
-- ingredient cleaning
-
-Run them with:
-
-```bash
-pytest
-```
-
-## Recommended GitHub Name And Subtitle
-
-Repository name: `SafeShop`
-
-Subtitle: `AI-powered real-time food ingredient and nutrition analysis system.`
-
-## High-Impact Next Improvements
-
-- Add 1-2 screenshots of the extension in action
-- Add a short demo GIF
-- Expand parser and scoring coverage with more edge-case tests
-- Add a few more sample products in `data/sample/`
-
-## Why This Repository Works Well Publicly
-
-SafeShop presents as a production-oriented applied AI project with a clear user problem, an understandable system design, and a real user-facing interface. That makes it much stronger for recruiters than a repository that looks like a loose collection of scripts and experiments.
+Load unpacked from `extension/` as above. For local-only testing the extension still falls back to `http://127.0.0.1:8000` if the host is unreachable.

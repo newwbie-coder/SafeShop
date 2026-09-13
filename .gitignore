@@ -27,14 +27,17 @@ env/
 *_debug.json
 low_conf_debug.json
 knowledge/unknown_additives.txt
+knowledge/unknown_additives.json
+knowledge/additives_proposed.json
 
 # Generated datasets
 *.jsonl
 
-# Keep lightweight sample data
+# Keep lightweight sample data and the hosted lookup catalog
 !data/sample/*.json
 !data/sample/*.jsonl
 !data/sample/*.md
+!data/catalog.jsonl
 
 # Generated scraper outputs
 data/generated/*

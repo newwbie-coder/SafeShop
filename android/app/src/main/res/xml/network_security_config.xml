@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!--
+      Debug/testing build: allow cleartext HTTP so the app can reach a locally hosted
+      backend over WiFi (your computer's LAN IP) or an adb-reversed localhost.
+      A production build should use HTTPS to a hosted backend and remove this.
+    -->
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

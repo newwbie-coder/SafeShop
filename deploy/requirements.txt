@@ -1,0 +1,6 @@
+# Slim runtime deps for the hosted SafeShop API.
+# The /analyze and /analyze_text paths only use stdlib + these three packages
+# (no pandas/numpy/scikit-learn/torch), so the deploy image stays small and fast.
+fastapi
+uvicorn[standard]
+pydantic
